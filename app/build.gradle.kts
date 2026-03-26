@@ -46,8 +46,11 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     
-    // NEW: Military-grade encryption for your PINs and Files
+    // Security & Encryption
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
-    // NEW: Coil for loading images in your vault
     implementation("io.coil-kt:coil-compose:2.5.0")
+    
+    // NEW: Biometric Fingerprint & Fragment UI
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
 }
