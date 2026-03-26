@@ -12,6 +12,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricPrompt
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -24,7 +25,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -51,7 +52,6 @@ import java.io.RandomAccessFile
 
 enum class Screen { Loading, SetupMaster, SetupDummy, Calculator, Vault }
 
-// CHANGED: FragmentActivity is required for BiometricPrompt
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,7 +119,9 @@ fun AppNavigator(activity: FragmentActivity) {
 
 @Composable
 fun SetupScreen(title: String, onPinSet: (String) -> Unit) {
+    val context = LocalContext.current // FIXED: Context grabbed safely outside the click
     var display by remember { mutableStateOf("") }
+    
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.Bottom) {
         Text(text = title, fontSize = 24.sp, color = Color.Gray, modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp), textAlign = TextAlign.Center)
         Text(text = display.ifEmpty { "0" }, fontSize = 56.sp, color = Color.White, modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp), textAlign = TextAlign.Center)
@@ -127,7 +129,7 @@ fun SetupScreen(title: String, onPinSet: (String) -> Unit) {
             when (btn) {
                 "C" -> display = ""
                 "⌫" -> display = display.dropLast(1)
-                "=" -> if (display.length >= 4) onPinSet(display) else Toast.makeText(LocalContext.current, "PIN must be 4+ digits", Toast.LENGTH_SHORT).show()
+                "=" -> if (display.length >= 4) onPinSet(display) else Toast.makeText(context, "PIN must be 4+ digits", Toast.LENGTH_SHORT).show()
                 else -> if (display.length < 8 && display != "Error") display += btn
             }
         }, showBiometric = false)
@@ -223,7 +225,7 @@ fun CalcKeypad(onPress: (String) -> Unit, showBiometric: Boolean) {
                     shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(containerColor = if (btn == "=" || btn == "C" || btn == "⌫") Color(0xFF4CAF50) else if (btn == "BIO") Color(0xFF2196F3) else if (btn in listOf("/", "*", "-", "+")) Color(0xFF333333) else Color(0xFF1E1E1E))
                 ) {
-                    if (btn == "BIO") Icon(Icons.Filled.Fingerprint, contentDescription = "Fingerprint", tint = Color.White)
+                    if (btn == "BIO") Icon(Icons.Filled.Lock, contentDescription = "Biometric", tint = Color.White) // FIXED: Replaced missing Fingerprint icon with standard Lock
                     else Text(text = btn, fontSize = 24.sp, color = Color.White)
                 }
             }
@@ -231,6 +233,7 @@ fun CalcKeypad(onPress: (String) -> Unit, showBiometric: Boolean) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class) // FIXED: Told compiler to allow swipeable gallery
 @Composable
 fun VaultGalleryScreen(isDummyMode: Boolean, masterKey: MasterKey, onCloseVault: () -> Unit) {
     val context = LocalContext.current
