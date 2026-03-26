@@ -8,30 +8,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    # Updated to v4
     - uses: actions/checkout@v4
     
-    # Updated to v4
     - name: set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    # Generate the missing Gradle wrapper on the fly
-    - name: Generate Gradle Wrapper
-      run: gradle wrapper --gradle-version 8.5
+    # FIXED: We use a specific GitHub action to handle Gradle setup correctly 
+    # instead of generating the wrapper manually.
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.4'
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-
+    # We tell gradle directly to build, no wrapper needed.
     - name: Build with Gradle
-      run: ./gradlew assembleDebug
+      run: gradle assembleDebug
 
-    # Updated to v4 to fix the error!
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: my-stealth-app
         path: app/build/outputs/apk/debug/app-debug.apk
-        
